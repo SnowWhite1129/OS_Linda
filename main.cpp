@@ -5,19 +5,19 @@
 #include <queue>
 #include <map>
 
-#define server 0
-
 vector <Tuple> tuples;
 queue <int> priority;
 map<string, string> table;
 
-void execCommand(const Instruction &instruction, bool wait[]){
+void execCommand(const Instruction &instruction, bool wait[], Tuple result[]){
     switch (instruction.operation){
         case out:
             tuples.push_back(instruction.tuple);
+            writeTuple(tuples);
             break;
         case read:
         case in:
+            //TODO mutiple key value
             string key = instruction.tuple.fields.at(instruction.tuple.fields.size()-1);
 
             int pos = findPos(instruction.tuple, tuples);
@@ -33,9 +33,20 @@ void execCommand(const Instruction &instruction, bool wait[]){
                 if (key[0]!= '?') {
                     wait[instruction.clientID] = true;
                     priority.push(instruction.clientID);
+                    //TODO =
+                    result[instruction.clientID] = instruction.tuple;
                 }
             }
             break;
+    }
+}
+void execRegular(Tuple result[], int threatNum){
+    //TODO: Priority go through
+    for (int i = 0; i < threatNum+1; ++i) {
+        int pos = findPos(result[i], tuples);
+        if (pos!=-1){
+            //TODO: Send tuple to client i
+        }
     }
 }
 
@@ -58,7 +69,9 @@ int takeInput(const string &line, Instruction &instruction){
         instruction.operation = read;
     else
         cout << "Error" << endl;
+
     while (iss >> str){
+        //TODO lookup table and replace
         instruction.tuple.Add(str);
     }
 
@@ -73,6 +86,7 @@ int main() {
 
     bool exit = false;
     bool wait[threatNum+1];
+    Tuple result[threatNum+1];
 
     for (int i = 0; i < threatNum+1; ++i) {
         wait[i] = false;
@@ -91,7 +105,8 @@ int main() {
                     if (!takeInput(line, instruction))
                         exit = true;
                     else{
-                        execCommand(instruction, wait);
+                        execCommand(instruction, wait, result);
+                        execRegular(result, threatNum);
                     }
                 }
             } else {
