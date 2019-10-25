@@ -7,14 +7,20 @@ bool Tuple::operator==(const Tuple &tuple) const {
     if (fields.size() != length)
         return false;
     //TODO: condition rewrite
-    if (tuple.fields.at(length-1)[0]=='?'){
-        --length;
-    }
+
     for (int i = 0; i < length; ++i) {
+        if (tuple.fields.at(i)[0]=='?'){
+            continue;
+        }
         if (fields.at(i) == tuple.fields.at(i))
             return false;
     }
     return true;
+}
+Tuple& Tuple::operator=(const Tuple &tuple) {
+    for (const auto & field : tuple.fields) {
+        fields.push_back(field);
+    }
 }
 void Tuple::Write(FILE *outfp) {
 

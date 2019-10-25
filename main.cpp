@@ -17,36 +17,36 @@ void execCommand(const Instruction &instruction, bool wait[], Tuple result[]){
             break;
         case read:
         case in:
-            //TODO mutiple key value
-            string key = instruction.tuple.fields.at(instruction.tuple.fields.size()-1);
-
             int pos = findPos(instruction.tuple, tuples);
             if (pos!=-1){
-                if (key[0] == '?'){
-                    string value = tuples.at(pos).fields.at(tuples.at(pos).fields.size()-1);
-                    table[key] = value;
+                for (int i = 0; i < tuples.at(pos).fields.size(); ++i) {
+                    if (instruction.tuple.fields.at(i)[0] == '?')
+                        table[instruction.tuple.fields.at(i).substr(1)] = tuples.at(pos).fields.at(i);
                 }
                 //TODO: Send tuple to client i
                 if (instruction.operation==in)
                     removeTuple(tuples, pos);
             } else{
-                if (key[0]!= '?') {
-                    wait[instruction.clientID] = true;
-                    priority.push(instruction.clientID);
-                    //TODO =
-                    result[instruction.clientID] = instruction.tuple;
-                }
+                wait[instruction.clientID] = true;
+                priority.push(instruction.clientID);
+                result[instruction.clientID] = instruction.tuple;
             }
             break;
     }
 }
-void execRegular(Tuple result[], int threatNum){
-    //TODO: Priority go through
-    for (int i = 0; i < threatNum+1; ++i) {
-        int pos = findPos(result[i], tuples);
+//TODO: The structure is as same as above
+//TODO: Arguements should be Instruction
+void execRegular(Tuple result[]){
+    queue <int> tmp = priority;
+    while (!tmp.empty()){
+        int pos = findPos(result[tmp.front()], tuples);
         if (pos!=-1){
             //TODO: Send tuple to client i
+            result[tmp.front()].fields.clear();
+            priority.pop();
+            break;
         }
+        tmp.pop();
     }
 }
 
@@ -71,7 +71,9 @@ int takeInput(const string &line, Instruction &instruction){
         cout << "Error" << endl;
 
     while (iss >> str){
-        //TODO lookup table and replace
+        auto it = table.find(str);
+        if (it != table.end())
+            str = table[str];
         instruction.tuple.Add(str);
     }
 
@@ -106,7 +108,7 @@ int main() {
                         exit = true;
                     else{
                         execCommand(instruction, wait, result);
-                        execRegular(result, threatNum);
+                        execRegular(result);
                     }
                 }
             } else {

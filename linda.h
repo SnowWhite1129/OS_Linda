@@ -16,6 +16,7 @@ struct Tuple{
     void Write(FILE *outfp);
     //TODO =
     bool operator == (const Tuple &tuple) const;
+    Tuple &operator = (const Tuple &tuple);
 };
 struct Instruction{
     int clientID;
@@ -26,4 +27,5 @@ struct Instruction{
 int findPos(const Tuple &tuple, vector<Tuple> &tuples);
 void removeTuple(vector<Tuple>& tuples, int pos);
 void writeTuple(vector<Tuple>& tuples);
+
 #endif //OS_LINDA_LINDA_H
