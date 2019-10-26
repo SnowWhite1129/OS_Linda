@@ -1,5 +1,5 @@
 all:
-    g++ linda.cpp  main.cpp -o -std:c++14 linda
+    g++ linda.cpp  main.cpp -o -std:c++14 -fopenmp linda
 dbg:
-    g++ linda.cpp  main.cpp -o -std:c++14 linda -D dbg
+    g++ linda.cpp  main.cpp -o -std:c++14 -fopenmp linda -D dbg
     

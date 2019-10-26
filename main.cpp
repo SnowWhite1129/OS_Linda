@@ -9,7 +9,36 @@ vector <Tuple> tuples;
 queue <int> priority;
 map<string, string> table;
 
-void execCommand(const Instruction &instruction, bool wait[], Tuple result[]){
+Tuple lookUp(Tuple &tuple){
+    Tuple ret;
+    for (auto & field : tuple.fields) {
+        if (field[0] == '?')
+            ret.fields.push_back(table[field.substr(1)]);
+    }
+    return ret;
+}
+
+void execClient(Instruction &instruction, int clientID){
+    string filename = to_string(clientID)+".txt";
+    FILE *outfp = fopen(filename.c_str(), "w");
+    lookUp(instruction.tuple).Write(outfp);
+}
+
+bool execReadIn(const Instruction &instruction, bool signal[]){
+    int pos = findPos(instruction.tuple, tuples);
+    if (pos!=-1){
+        for (int i = 0; i < tuples.at(pos).fields.size(); ++i) {
+            if (instruction.tuple.fields.at(i)[0] == '?')
+                table[instruction.tuple.fields.at(i).substr(1)] = tuples.at(pos).fields.at(i);
+        }
+        signal[instruction.clientID] = true;
+        if (instruction.operation==in)
+            removeTuple(tuples, pos);
+        return true;
+    }
+    return false;
+}
+void execCommand(const Instruction &instruction, bool wait[], Instruction result[], bool signal[]){
     switch (instruction.operation){
         case out:
             tuples.push_back(instruction.tuple);
@@ -17,32 +46,20 @@ void execCommand(const Instruction &instruction, bool wait[], Tuple result[]){
             break;
         case read:
         case in:
-            int pos = findPos(instruction.tuple, tuples);
-            if (pos!=-1){
-                for (int i = 0; i < tuples.at(pos).fields.size(); ++i) {
-                    if (instruction.tuple.fields.at(i)[0] == '?')
-                        table[instruction.tuple.fields.at(i).substr(1)] = tuples.at(pos).fields.at(i);
-                }
-                //TODO: Send tuple to client i
-                if (instruction.operation==in)
-                    removeTuple(tuples, pos);
-            } else{
+            if (!execReadIn(instruction, signal)){
                 wait[instruction.clientID] = true;
                 priority.push(instruction.clientID);
-                result[instruction.clientID] = instruction.tuple;
+                result[instruction.clientID].tuple = instruction.tuple;
             }
             break;
     }
 }
-//TODO: The structure is as same as above
-//TODO: Arguements should be Instruction
-void execRegular(Tuple result[]){
+
+void execRegular(Instruction result[], bool signal[]){
     queue <int> tmp = priority;
     while (!tmp.empty()){
-        int pos = findPos(result[tmp.front()], tuples);
-        if (pos!=-1){
-            //TODO: Send tuple to client i
-            result[tmp.front()].fields.clear();
+        if (execReadIn(result[tmp.front()], signal)){
+            result[tmp.front()].tuple.fields.clear();
             priority.pop();
             break;
         }
@@ -88,10 +105,13 @@ int main() {
 
     bool exit = false;
     bool wait[threatNum+1];
-    Tuple result[threatNum+1];
+    bool signal[threatNum+1];
+
+    Instruction result[threatNum+1];
 
     for (int i = 0; i < threatNum+1; ++i) {
         wait[i] = false;
+        signal[i] = false;
     }
 
     Instruction instruction;
@@ -107,16 +127,15 @@ int main() {
                     if (!takeInput(line, instruction))
                         exit = true;
                     else{
-                        execCommand(instruction, wait, result);
-                        execRegular(result);
+                        execCommand(instruction, wait, result, signal);
+                        execRegular(result, signal);
                     }
                 }
             } else {
-                /*
-                if (!wait[threadID] && instruction.clientID == threadID && instruction.operation!=out){
-
+                if (signal[threadID]){
+                    execClient(result[threadID], threadID);
+                    signal[threadID] = false;
                 }
-                */
             }
         }
     }

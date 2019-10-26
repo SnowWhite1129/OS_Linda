@@ -6,7 +6,6 @@ bool Tuple::operator==(const Tuple &tuple) const {
     int length = tuple.fields.size();
     if (fields.size() != length)
         return false;
-    //TODO: condition rewrite
 
     for (int i = 0; i < length; ++i) {
         if (tuple.fields.at(i)[0]=='?'){
