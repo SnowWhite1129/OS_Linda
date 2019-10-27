@@ -72,65 +72,18 @@ using multithread by OpenMP.
 	- If two clients are waiting for the same tuple, the client waits earlier will
 	get the tuple first.
 ## Scenarios
-	3
-	This integer specifies the number of clients.
-	1 out "abc" 2 "x"
-	Client 1 put tuple ("abc",2,“x") into tuple space.
-	2 in "abc" "2" ?j
-	There is no match for the request, so client 2 will suspend.
-	3 in "abc" 2 ?i
-	Assign string “x” to variable i, then server send tuple(“abc”,2,”x”) back to
-	client 3, the tuple (“abc”,2,“x”) in the tuple space would be removed.
-	And client 3 will save tuple (“abc”,2,”x”) into file. (named 3.txt)
-	3 in "abc" "2" 7
-	There is no match for the request, so client 3 will suspend.
-	1 out "abc" "2" 7
-	Assign integer 7 to variable j, then server send tuple(“abc”,”2”,7) back to
-	client 2, the tuple(“abc”,”2”,7) in the tuple space would be removed.
-	And client 2 will save tuple (“abc”,”2”,7) into file. (named 2.txt)
-	1 out "def" j i
-	Client 1 put tuple ("def",7,"x") into tuple space.
-	1 out 1 2 3
-	Client 1 put tuple (1,2,3) into tuple space
-	2 read "def" ?a ?b
-	Assign 7 to variable a and “x” to variable b and client 2 would receive a
-	tuple (“def”,7,”x”) but this tuple won’t be removed. And client 2 will
-	save tuple (“def”,7,”x”) into file. (named 2.txt)
-	2 in "def" a b
-	Client 2 would receive a tuple (“def”,7 ,”x”) and this tuple will be
-	removed. And client 2 will save tuple (“def”,7,”x”) into file. (named 2.txt)
-	1 out "abc" "2" 7
-	Client 3 would receive a tuple (“abc”,”2”,7) and this tuple will be
-	removed. And client 3 will save tuple (“abc”,”2”,7) into file. (named
-	3.txt)
-	exit
-	terminate the program
-	Output for Scenarios
-	• If tuple space changes, server should output the tuple space to a file
-	named “server.txt”.
-	• If tuple space is null, print ().
-	• When client get the tuple by in/read, client should output to a file
-	named “clientID.txt”
-	Client1 -> 1.txt
-	Client2 -> 2.txt
-	Client3 -> 3.txt
-	Input Output
-	3(Client number)
-	1.txt 2.txt 3.txt server.txt
-	1 out “abc” 2 “x” ((“abc”,2,”x”)
-	)
-	2 in “abc” “2” ?j
-	3 in “abc” 2 ?i (“abc”, 2 ,“x”) ()
-	3 in “abc” “2” 7
-	1 out “abc” “2” 7 (“abc”,”2”,7) ()
-	1 out “def” j i ((“def”,7,”x”)
-	)
-	1 out 1 2 3 ((“def”,7,”x”),
-	(1,2,3))
-	2 read "def" ?a ?b (“def”,7,”x”)
-	2 in "def" a b (“def”,7,”x”) ((1,2,3))
-	1 out "abc" "2" 7 (“abc”,”2”,7) ((1,2,3))
-	exit
+	- 3
+	- 1 out "abc" 2 "x"
+	- 2 in "abc" "2" ?j
+	- 3 in "abc" 2 ?i
+	- 3 in "abc" "2" 7
+	- 1 out "abc" "2" 7
+	- 1 out "def" j i
+	- 1 out 1 2 3
+	- 2 read "def" ?a ?b
+	- 2 in "def" a b
+	- 1 out "abc" "2" 7
+	- exit
 ## Note
 	1. You should write your code in C/C++ and “must” use OpenMP .
 	2. Your program should be executed on the AWS instance.

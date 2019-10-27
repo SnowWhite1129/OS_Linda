@@ -1,8 +1,17 @@
 #include "linda.h"
+#include <iostream>
 void Tuple::Add(string &str) {
     fields.push_back(str);
 }
 bool Tuple::operator==(const Tuple &tuple) const {
+    /*
+#ifdef dbg
+    for (int i = 0; i < tuple.fields.size(); ++i) {
+        cout << tuple.fields.at(i) << " ";
+    }
+    cout << endl;
+#endif
+     */
     int length = tuple.fields.size();
     if (fields.size() != length)
         return false;
@@ -11,17 +20,18 @@ bool Tuple::operator==(const Tuple &tuple) const {
         if (tuple.fields.at(i)[0]=='?'){
             continue;
         }
-        if (fields.at(i) == tuple.fields.at(i))
+        if (fields.at(i) != tuple.fields.at(i))
             return false;
     }
     return true;
 }
 Tuple& Tuple::operator=(const Tuple &tuple) {
+    fields.clear();
     for (const auto & field : tuple.fields) {
         fields.push_back(field);
     }
 }
-void Tuple::Write(FILE *outfp) {
+void Tuple::Write(FILE *outfp) const{
 
     fprintf(outfp, "(");
     for (int i = 0; i < fields.size(); ++i) {
@@ -32,7 +42,7 @@ void Tuple::Write(FILE *outfp) {
     fprintf(outfp, ")");
 
 }
-int findPos(const Tuple &tuple, vector<Tuple> &tuples){
+int findPos(const Tuple &tuple, const vector<Tuple> &tuples){
     for (int i = 0; i < tuples.size(); ++i) {
         if (tuples.at(i) == tuple)
             return i;
@@ -41,9 +51,9 @@ int findPos(const Tuple &tuple, vector<Tuple> &tuples){
 }
 
 void removeTuple(vector<Tuple>& tuples, int pos){
-    tuples.erase(tuples.begin()+pos-1);
+    tuples.erase(tuples.begin()+pos);
 }
-void writeTuple(vector<Tuple>& tuples){
+void writeTuple(const vector<Tuple>& tuples){
     FILE *outfp = fopen("server.txt", "w");
     fprintf(outfp, "(");
     for (int i = 0; i < tuples.size(); ++i) {
@@ -52,4 +62,5 @@ void writeTuple(vector<Tuple>& tuples){
             fprintf(outfp, ",");
     }
     fprintf(outfp, ")");
+    fclose(outfp);
 }

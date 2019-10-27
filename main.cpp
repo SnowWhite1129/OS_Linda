@@ -6,7 +6,6 @@
 #include <map>
 
 vector <Tuple> tuples;
-queue <int> priority;
 map<string, string> table;
 
 Tuple lookUp(Tuple &tuple){
@@ -14,6 +13,8 @@ Tuple lookUp(Tuple &tuple){
     for (auto & field : tuple.fields) {
         if (field[0] == '?')
             ret.fields.push_back(table[field.substr(1)]);
+        else
+            ret.fields.push_back(field);
     }
     return ret;
 }
@@ -22,23 +23,26 @@ void execClient(Instruction &instruction, int clientID){
     string filename = to_string(clientID)+".txt";
     FILE *outfp = fopen(filename.c_str(), "w");
     lookUp(instruction.tuple).Write(outfp);
+    fclose(outfp);
 }
 
-bool execReadIn(const Instruction &instruction, bool signal[]){
+bool execReadIn(const Instruction &instruction){
     int pos = findPos(instruction.tuple, tuples);
     if (pos!=-1){
         for (int i = 0; i < tuples.at(pos).fields.size(); ++i) {
             if (instruction.tuple.fields.at(i)[0] == '?')
                 table[instruction.tuple.fields.at(i).substr(1)] = tuples.at(pos).fields.at(i);
         }
-        signal[instruction.clientID] = true;
-        if (instruction.operation==in)
+        if (instruction.operation==in){
             removeTuple(tuples, pos);
+            writeTuple(tuples);
+        }
+
         return true;
     }
     return false;
 }
-void execCommand(const Instruction &instruction, bool wait[], Instruction result[], bool signal[]){
+void execCommand(const Instruction &instruction, bool wait[], Instruction result[], bool signal[], queue <int> &priority){
     switch (instruction.operation){
         case out:
             tuples.push_back(instruction.tuple);
@@ -46,21 +50,35 @@ void execCommand(const Instruction &instruction, bool wait[], Instruction result
             break;
         case read:
         case in:
-            if (!execReadIn(instruction, signal)){
+            if (!execReadIn(instruction)){
                 wait[instruction.clientID] = true;
                 priority.push(instruction.clientID);
-                result[instruction.clientID].tuple = instruction.tuple;
+                //result[instruction.clientID].tuple = instruction.tuple;
             }
+            result[instruction.clientID].tuple = instruction.tuple;
+            result[instruction.clientID].operation = instruction.operation;
+            signal[instruction.clientID] = true;
+#ifdef dbg
+            cout << "==================" << instruction.clientID << endl;
+            for (int i=0; i<result[instruction.clientID].tuple.fields.size();++i) {
+                cout << result[instruction.clientID].tuple.fields.at(i) << " ";
+            }
+            cout << endl;
+            cout << "==================" << endl;
+#endif
+
             break;
     }
 }
 
-void execRegular(Instruction result[], bool signal[]){
+void execRegular(Instruction result[], bool signal[], queue <int> &priority){
     queue <int> tmp = priority;
     while (!tmp.empty()){
-        if (execReadIn(result[tmp.front()], signal)){
-            result[tmp.front()].tuple.fields.clear();
+        if (execReadIn(result[tmp.front()])){
+//            cout << "reallly" << endl;
+//            result[tmp.front()].tuple.fields.clear();
             priority.pop();
+            signal[tmp.front()] = true;
             break;
         }
         tmp.pop();
@@ -93,15 +111,25 @@ int takeInput(const string &line, Instruction &instruction){
             str = table[str];
         instruction.tuple.Add(str);
     }
-
+    /*
+#ifdef dbg
+    cout << "==================" << endl;
+    for (const auto & field : instruction.tuple.fields) {
+        cout << field << " ";
+    }
+    cout << endl;
+    cout << "==================" << endl;
+#endif
+     */
     return true;
 }
 
 int main() {
     int threatNum;
+    char nullchar;
 
     cin >> threatNum;
-    omp_set_num_threads(threatNum+1);
+    scanf("%c", &nullchar);
 
     bool exit = false;
     bool wait[threatNum+1];
@@ -113,26 +141,33 @@ int main() {
         wait[i] = false;
         signal[i] = false;
     }
+    queue <int> priority;
 
-    Instruction instruction;
-
+    omp_set_num_threads(threatNum+1);
 #pragma omp parallel
     {
         while (!exit){
             int threadID = omp_get_thread_num();
             if (threadID == server){
                 string line;
-                while (!getline(cin, line)) {
-                    printf("%% ");
+                if (getline(cin, line)) {
+                    Instruction instruction;
                     if (!takeInput(line, instruction))
                         exit = true;
                     else{
-                        execCommand(instruction, wait, result, signal);
-                        execRegular(result, signal);
+                        execCommand(instruction, wait, result, signal, priority);
+                        execRegular(result, signal, priority);
                     }
                 }
             } else {
                 if (signal[threadID]){
+#ifdef dbg
+                    cout << threadID << endl;
+                    for (int i = 0; i < result[threadID].tuple.fields.size(); ++i) {
+                        cout << result[threadID].tuple.fields.at(i) << " ";
+                    }
+                    cout << endl;
+#endif
                     execClient(result[threadID], threadID);
                     signal[threadID] = false;
                 }
