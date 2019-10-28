@@ -37,7 +37,6 @@ bool execReadIn(const Instruction &instruction){
             removeTuple(tuples, pos);
             writeTuple(tuples);
         }
-
         return true;
     }
     return false;
@@ -60,15 +59,6 @@ void execCommand(const Instruction &instruction, bool wait[], Instruction result
             result[instruction.clientID].tuple = instruction.tuple;
             result[instruction.clientID].operation = instruction.operation;
             signal[instruction.clientID] = true;
-#ifdef dbg
-            cout << "==================" << instruction.clientID << endl;
-            for (int i=0; i<result[instruction.clientID].tuple.fields.size();++i) {
-                cout << result[instruction.clientID].tuple.fields.at(i) << " ";
-            }
-            cout << endl;
-            cout << "==================" << endl;
-#endif
-
             break;
     }
 }
@@ -77,8 +67,6 @@ void execRegular(Instruction result[], bool signal[], queue <int> &priority, boo
     queue <int> tmp = priority;
     while (!tmp.empty()){
         if (execReadIn(result[tmp.front()])){
-//            cout << "reallly" << endl;
-//            result[tmp.front()].tuple.fields.clear();
             priority.pop();
             wait[tmp.front()] = false;
             signal[tmp.front()] = true;
@@ -114,16 +102,6 @@ int takeInput(const string &line, Instruction &instruction){
             str = table[str];
         instruction.tuple.Add(str);
     }
-    /*
-#ifdef dbg
-    cout << "==================" << endl;
-    for (const auto & field : instruction.tuple.fields) {
-        cout << field << " ";
-    }
-    cout << endl;
-    cout << "==================" << endl;
-#endif
-     */
     return true;
 }
 
@@ -164,13 +142,6 @@ int main() {
                 }
             } else {
                 if (signal[threadID]){
-#ifdef dbg
-                    cout << threadID << endl;
-                    for (int i = 0; i < result[threadID].tuple.fields.size(); ++i) {
-                        cout << result[threadID].tuple.fields.at(i) << " ";
-                    }
-                    cout << endl;
-#endif
                     execClient(result[threadID], threadID);
                     signal[threadID] = false;
                 }

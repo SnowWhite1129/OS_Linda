@@ -4,14 +4,6 @@ void Tuple::Add(string &str) {
     fields.push_back(str);
 }
 bool Tuple::operator==(const Tuple &tuple) const {
-    /*
-#ifdef dbg
-    for (int i = 0; i < tuple.fields.size(); ++i) {
-        cout << tuple.fields.at(i) << " ";
-    }
-    cout << endl;
-#endif
-     */
     int length = tuple.fields.size();
     if (fields.size() != length)
         return false;
@@ -32,7 +24,6 @@ Tuple& Tuple::operator=(const Tuple &tuple) {
     }
 }
 void Tuple::Write(FILE *outfp) const{
-
     fprintf(outfp, "(");
     for (int i = 0; i < fields.size(); ++i) {
         fprintf(outfp, "%s", fields.at(i).c_str());
@@ -40,7 +31,6 @@ void Tuple::Write(FILE *outfp) const{
             fprintf(outfp, ",");
     }
     fprintf(outfp, ")");
-
 }
 int findPos(const Tuple &tuple, const vector<Tuple> &tuples){
     for (int i = 0; i < tuples.size(); ++i) {
