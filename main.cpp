@@ -43,6 +43,8 @@ bool execReadIn(const Instruction &instruction){
     return false;
 }
 void execCommand(const Instruction &instruction, bool wait[], Instruction result[], bool signal[], queue <int> &priority){
+    if (wait[instruction.clientID])
+        return;
     switch (instruction.operation){
         case out:
             tuples.push_back(instruction.tuple);
