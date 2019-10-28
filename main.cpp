@@ -73,13 +73,14 @@ void execCommand(const Instruction &instruction, bool wait[], Instruction result
     }
 }
 
-void execRegular(Instruction result[], bool signal[], queue <int> &priority){
+void execRegular(Instruction result[], bool signal[], queue <int> &priority, bool wait[]){
     queue <int> tmp = priority;
     while (!tmp.empty()){
         if (execReadIn(result[tmp.front()])){
 //            cout << "reallly" << endl;
 //            result[tmp.front()].tuple.fields.clear();
             priority.pop();
+            wait[tmp.front()] = false;
             signal[tmp.front()] = true;
             break;
         }
@@ -158,7 +159,7 @@ int main() {
                         exit = true;
                     else{
                         execCommand(instruction, wait, result, signal, priority);
-                        execRegular(result, signal, priority);
+                        execRegular(result, signal, priority, wait);
                     }
                 }
             } else {
