@@ -49,7 +49,7 @@ void execCommand(const Instruction &instruction, bool wait[], Instruction result
     switch (instruction.operation){
         case out:
             tuples.push_back(instruction.tuple);
-            writeTuple(tuples);
+            //writeTuple(tuples);
             break;
         case read_:
         case in:
@@ -170,6 +170,7 @@ int main() {
                     else{
                         execCommand(instruction, wait, result, signal, priority, &writelock);
                         execRegular(result, signal, priority, wait, &writelock);
+                        writeTuple(tuples);
                     }
                 }
             } else {
