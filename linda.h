@@ -14,7 +14,6 @@ struct Tuple{
     vector <string> fields;
     void Add(string &str);
     void Write(FILE *outfp) const;
-    //TODO =
     bool operator == (const Tuple &tuple) const;
     Tuple &operator = (const Tuple &tuple);
 };

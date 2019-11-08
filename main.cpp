@@ -49,7 +49,6 @@ void execCommand(const Instruction &instruction, bool wait[], Instruction result
     switch (instruction.operation){
         case out:
             tuples.push_back(instruction.tuple);
-            //writeTuple(tuples);
             break;
         case read_:
         case in:
@@ -83,10 +82,9 @@ void execCommand(const Instruction &instruction, bool wait[], Instruction result
     }
 }
 
-void execRegular(Instruction result[], bool signal[], queue <int> &priority, bool wait[], omp_lock_t *writelock){
+bool execRegular(Instruction result[], bool signal[], queue <int> &priority, bool wait[], omp_lock_t *writelock){
     queue <int> tmp = priority;
     while (!tmp.empty()){
-	printf("%d ", tmp.front());
         if (execReadIn(result[tmp.front()])){
             priority.pop();
             wait[tmp.front()] = false;
@@ -98,12 +96,11 @@ void execRegular(Instruction result[], bool signal[], queue <int> &priority, boo
 	        }
             signal[tmp.front()] = true;
             omp_unset_lock(writelock);
-            printf("OK\n");
-            break;
+            return true;
         }
         tmp.pop();
     }
-	printf("\n");
+    return false;
 }
 
 int takeInput(const string &line, Instruction &instruction){
@@ -148,7 +145,10 @@ int main() {
 
     Instruction result[threatNum+1];
 
-    for (int i = 0; i < threatNum+1; ++i) {
+    for (int i = 1; i < threatNum+1; ++i) {
+        string filename = to_string(i)+".txt";
+        FILE *fp = fopen(filename.c_str(), "a");
+        fclose(fp);
         wait[i] = false;
         signal[i] = false;
     }
@@ -169,7 +169,8 @@ int main() {
                         exit = true;
                     else{
                         execCommand(instruction, wait, result, signal, priority, &writelock);
-                        execRegular(result, signal, priority, wait, &writelock);
+                        if(!execRegular(result, signal, priority, wait, &writelock)&&instruction.operation==out)
+                            writeTuple(tuples);
                     }
                 }
             } else {

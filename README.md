@@ -1,6 +1,7 @@
 # OS_Linda
 ## Overview
 	- In this project, we are going to implement Linda with three operations using multithread by OpenMP.
+
 ## Tutorials
 	1. Linda
 		Linda is a novel system for communication and synchronization.
@@ -19,6 +20,7 @@
 		in or read ), the result tuple should be sent to the corresponding client.
 		Client thread should wait for the result tuple if the instruction’s
 		operation is in or read , and save the result tuple to the file.
+
 ## Specifications
 	1. Data type:
 		- String : the data between “ and ”, for example “abc”.
@@ -70,6 +72,7 @@
 		be ignored.
 		- If two clients are waiting for the same tuple, the client waits earlier will
 		get the tuple first.
+
 ## Scenarios
 	- 3
 	- 1 out "abc" 2 "x"
@@ -83,15 +86,18 @@
 	- 2 in "def" a b
 	- 1 out "abc" "2" 7
 	- exit
+
 ## Note
 	1. You should write your code in C/C++ and “must” use OpenMP .
 	2. Your program should be executed on the AWS instance.
 	3. ClientID.txt must output by client thread , you cannot output thetuple directly by server thread .
+
 ## File submission
 	File name:<student_id>.cpp or <student_id>.c
 	Upload it to the new E3 platform .
 	TA would validate your source codes by cheating detection. Please finish the
 	assignment by yourself.
+
 ## Reference
 	[1]Linda
 		- https://en.wikipedia.org/wiki/Linda_(coordination_language)
