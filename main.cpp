@@ -21,8 +21,9 @@ Tuple lookUp(Tuple &tuple){
 
 void execClient(Instruction &instruction, int clientID){
     string filename = to_string(clientID)+".txt";
-    FILE *outfp = fopen(filename.c_str(), "w");
+    FILE *outfp = fopen(filename.c_str(), "a");
     lookUp(instruction.tuple).Write(outfp);
+    fprintf(outfp, "\n");
     fclose(outfp);
 }
 
@@ -41,7 +42,7 @@ bool execReadIn(const Instruction &instruction){
     }
     return false;
 }
-void execCommand(const Instruction &instruction, bool wait[], Instruction result[], bool signal[], queue <int> &priority){
+void execCommand(const Instruction &instruction, bool wait[], Instruction result[], bool signal[], queue <int> &priority, omp_lock_t *writelock){
     if (wait[instruction.clientID])
         return;
     switch (instruction.operation){
@@ -51,29 +52,52 @@ void execCommand(const Instruction &instruction, bool wait[], Instruction result
             break;
         case read:
         case in:
+	    bool success = false;
             if (!execReadIn(instruction)){
                 wait[instruction.clientID] = true;
                 priority.push(instruction.clientID);
-                //result[instruction.clientID].tuple = instruction.tuple;
-            }
-            result[instruction.clientID].tuple = instruction.tuple;
-            result[instruction.clientID].operation = instruction.operation;
-            signal[instruction.clientID] = true;
+            } else {
+		success = true;	
+	    }
+            //result[instruction.clientID].tuple = instruction.tuple;
+            //result[instruction.clientID].operation = instruction.operation;
+            if (success){
+		omp_set_lock(writelock);
+		while(signal[instruction.clientID]){
+			omp_unset_lock(writelock);
+			usleep(1000);
+			omp_set_lock(writelock);
+		}
+		signal[instruction.clientID] = true;
+		result[instruction.clientID].tuple = instruction.tuple;
+		result[instruction.clientID].operation = instrucion.operation;
+		omp_unset_lock(writelock);
+	    }
             break;
     }
 }
 
-void execRegular(Instruction result[], bool signal[], queue <int> &priority, bool wait[]){
+void execRegular(Instruction result[], bool signal[], queue <int> &priority, bool wait[], omp_init_lock *writelock){
     queue <int> tmp = priority;
     while (!tmp.empty()){
+	printf("%d ", tmp.front());
         if (execReadIn(result[tmp.front()])){
             priority.pop();
             wait[tmp.front()] = false;
+	    omp_set_lock(writelock);
+	    while(signal[tmp.front()]){
+		omp_unset_lock(writelock);
+		usleep(1000);
+		omp_set_lock(writelock);
+	    }
             signal[tmp.front()] = true;
+	    omp_unset_lock(writelock);
+	    printf("OK\n");
             break;
         }
         tmp.pop();
     }
+	printf("\n");
 }
 
 int takeInput(const string &line, Instruction &instruction){
@@ -123,7 +147,9 @@ int main() {
         signal[i] = false;
     }
     queue <int> priority;
+    omp_lock_t writelock;
 
+    omp_init_lock(&writelock);
     omp_set_num_threads(threatNum+1);
 #pragma omp parallel
     {
@@ -136,8 +162,8 @@ int main() {
                     if (!takeInput(line, instruction))
                         exit = true;
                     else{
-                        execCommand(instruction, wait, result, signal, priority);
-                        execRegular(result, signal, priority, wait);
+                        execCommand(instruction, wait, result, signal, priority, &writelock);
+                        execRegular(result, signal, priority, wait, &writelock);
                     }
                 }
             } else {

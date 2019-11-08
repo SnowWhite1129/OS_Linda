@@ -44,13 +44,13 @@ void removeTuple(vector<Tuple>& tuples, int pos){
     tuples.erase(tuples.begin()+pos);
 }
 void writeTuple(const vector<Tuple>& tuples){
-    FILE *outfp = fopen("server.txt", "w");
+    FILE *outfp = fopen("server.txt", "a");
     fprintf(outfp, "(");
     for (int i = 0; i < tuples.size(); ++i) {
         tuples.at(i).Write(outfp);
         if (i != tuples.size()-1)
             fprintf(outfp, ",");
     }
-    fprintf(outfp, ")");
+    fprintf(outfp, ")\n");
     fclose(outfp);
 }
