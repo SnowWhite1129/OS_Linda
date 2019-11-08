@@ -4,6 +4,7 @@
 #include "linda.h"
 #include <queue>
 #include <map>
+#include <unistd.h>
 
 vector <Tuple> tuples;
 map<string, string> table;
@@ -77,7 +78,7 @@ void execCommand(const Instruction &instruction, bool wait[], Instruction result
     }
 }
 
-void execRegular(Instruction result[], bool signal[], queue <int> &priority, bool wait[], omp_init_lock *writelock){
+void execRegular(Instruction result[], bool signal[], queue <int> &priority, bool wait[], omp_lock_t *writelock){
     queue <int> tmp = priority;
     while (!tmp.empty()){
 	printf("%d ", tmp.front());
