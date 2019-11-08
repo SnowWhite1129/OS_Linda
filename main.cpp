@@ -57,22 +57,22 @@ void execCommand(const Instruction &instruction, bool wait[], Instruction result
                 wait[instruction.clientID] = true;
                 priority.push(instruction.clientID);
             } else {
-		success = true;	
-	    }
+		        success = true;
+	        }
             //result[instruction.clientID].tuple = instruction.tuple;
             //result[instruction.clientID].operation = instruction.operation;
             if (success){
-		omp_set_lock(writelock);
-		while(signal[instruction.clientID]){
-			omp_unset_lock(writelock);
-			usleep(1000);
-			omp_set_lock(writelock);
-		}
-		signal[instruction.clientID] = true;
-		result[instruction.clientID].tuple = instruction.tuple;
-		result[instruction.clientID].operation = instrucion.operation;
-		omp_unset_lock(writelock);
-	    }
+		        omp_set_lock(writelock);
+                while(signal[instruction.clientID]){
+                    omp_unset_lock(writelock);
+                    usleep(1000);
+                    omp_set_lock(writelock);
+                }
+                signal[instruction.clientID] = true;
+                result[instruction.clientID].tuple = instruction.tuple;
+                result[instruction.clientID].operation = instrucion.operation;
+                omp_unset_lock(writelock);
+            }
             break;
     }
 }
@@ -84,15 +84,15 @@ void execRegular(Instruction result[], bool signal[], queue <int> &priority, boo
         if (execReadIn(result[tmp.front()])){
             priority.pop();
             wait[tmp.front()] = false;
-	    omp_set_lock(writelock);
-	    while(signal[tmp.front()]){
-		omp_unset_lock(writelock);
-		usleep(1000);
-		omp_set_lock(writelock);
-	    }
+            omp_set_lock(writelock);
+	        while(signal[tmp.front()]){
+                omp_unset_lock(writelock);
+                usleep(1000);
+                omp_set_lock(writelock);
+	        }
             signal[tmp.front()] = true;
-	    omp_unset_lock(writelock);
-	    printf("OK\n");
+            omp_unset_lock(writelock);
+            printf("OK\n");
             break;
         }
         tmp.pop();
@@ -167,10 +167,12 @@ int main() {
                     }
                 }
             } else {
+                omp_set_lock(&writelock);
                 if (signal[threadID]){
                     execClient(result[threadID], threadID);
                     signal[threadID] = false;
                 }
+                omp_unset_lock(&writelock);
             }
         }
     }

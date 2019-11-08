@@ -2,6 +2,7 @@
 *.d
 .idea/
 cmake-build-debug/
+*.txt
 
 # Compiled Object files
 *.slo
