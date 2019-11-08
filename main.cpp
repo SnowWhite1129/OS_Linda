@@ -170,7 +170,8 @@ int main() {
                     else{
                         execCommand(instruction, wait, result, signal, priority, &writelock);
                         execRegular(result, signal, priority, wait, &writelock);
-                        writeTuple(tuples);
+                        if (instruction.operation == out)
+                            writeTuple(tuples);
                     }
                 }
             } else {
