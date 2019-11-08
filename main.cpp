@@ -60,8 +60,6 @@ void execCommand(const Instruction &instruction, bool wait[], Instruction result
             } else {
 		        success = true;
 	        }
-            //result[instruction.clientID].tuple = instruction.tuple;
-            //result[instruction.clientID].operation = instruction.operation;
             if (success){
 		        omp_set_lock(writelock);
                 while(signal[instruction.clientID]){
@@ -70,10 +68,10 @@ void execCommand(const Instruction &instruction, bool wait[], Instruction result
                     omp_set_lock(writelock);
                 }
                 signal[instruction.clientID] = true;
-                result[instruction.clientID].tuple = instruction.tuple;
-                result[instruction.clientID].operation = instruction.operation;
                 omp_unset_lock(writelock);
             }
+            result[instruction.clientID].tuple = instruction.tuple;
+            result[instruction.clientID].operation = instruction.operation;
             break;
     }
 }
