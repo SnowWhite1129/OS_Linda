@@ -51,7 +51,7 @@ void execCommand(const Instruction &instruction, bool wait[], Instruction result
             tuples.push_back(instruction.tuple);
             writeTuple(tuples);
             break;
-        case read:
+        case read_:
         case in:
 	    bool success = false;
             if (!execReadIn(instruction)){
@@ -71,7 +71,7 @@ void execCommand(const Instruction &instruction, bool wait[], Instruction result
                 }
                 signal[instruction.clientID] = true;
                 result[instruction.clientID].tuple = instruction.tuple;
-                result[instruction.clientID].operation = instrucion.operation;
+                result[instruction.clientID].operation = instruction.operation;
                 omp_unset_lock(writelock);
             }
             break;
@@ -117,7 +117,7 @@ int takeInput(const string &line, Instruction &instruction){
     else if(str == "out")
         instruction.operation = out;
     else if(str == "read")
-        instruction.operation = read;
+        instruction.operation = read_;
     else
         cout << "Error" << endl;
 

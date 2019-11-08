@@ -8,7 +8,7 @@
 
 using namespace std;
 
-enum Operation {in, out, read};
+enum Operation {in, out, read_};
 
 struct Tuple{
     vector <string> fields;
