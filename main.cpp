@@ -72,6 +72,13 @@ void execCommand(const Instruction &instruction, bool wait[], Instruction result
             }
             result[instruction.clientID].tuple = instruction.tuple;
             result[instruction.clientID].operation = instruction.operation;
+            omp_set_lock(writelock);
+            while(signal[instruction.clientID]){
+                omp_unset_lock(writelock);
+                usleep(1000);
+                omp_set_lock(writelock);
+            }
+            omp_unset_lock(writelock);
             break;
     }
 }
